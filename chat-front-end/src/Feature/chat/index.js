@@ -1,5 +1,6 @@
 
-import React, { useId, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import './style.css';
 
 import {
   MenuFoldOutlined,
@@ -10,56 +11,67 @@ import {
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme, Form, Input, } from 'antd';
 import { useParams } from 'react-router-dom';
+import { getChatInfo } from '../home/utils';
 
 const { Header, Sider, Content } = Layout;
 
 const Chat: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-const [inputValue, setInputValues] = useState('');
-const [messages, setMessages] = useState([]);
-const [ws, setWs] = useState(null);
+  const [inputValue, setInputValues] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [ws, setWs] = useState(null);
+  const { id: chatRoomId, userId } = useParams();
+  
+  useEffect(() => {
+    if (!ws) {
+      const newWs = new WebSocket(`ws://${window.location.hostname}`);
+      // Handle connection events here (ws.onopen, ws.onmessage, ws.onclose)
+      setWs(newWs);
+    }
+    // Cleanup function to close the connection on unmount
+    return () => ws && ws.close();
+  }, [ws]);
 
-useEffect(() => {
-  if (!ws) {
-    const newWs = new WebSocket('ws://localhost');
-    // Handle connection events here (ws.onopen, ws.onmessage, ws.onclose)
-    setWs(newWs);
-  }
-  // Cleanup function to close the connection on unmount
-  return () => ws && ws.close();
-}, [ws]);
-
-  const {id: chatRoomId, userId} = useParams();
+  useEffect(()=> {
+      if(userId && chatRoomId){
+        if(ws && ws.readyState === 1){
+          handleJoin();          
+        }
+      }
+  },[chatRoomId, userId, ws])
+  
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  if (ws) {
+    ws.onopen = function (event) {
+      console.log('WebSocket connection opened!');
+      if(userId && chatRoomId){
+        if(ws && ws.readyState === 1){
+          handleJoin();          
+        }
+      }
+      // You can send initial messages to the server after connection
+    };
 
-  console.log('ws', ws)
- if(ws){
+    ws.onmessage = function (event) {
+      console.log('Message received from server:', event.data);
+      setMessages([...messages, JSON.parse(event.data)]);
+      // Process messages received from the server (update UI, etc.)
+    };
 
-  ws.onopen = function(event) {
-    console.log('WebSocket connection opened!');
-    // You can send initial messages to the server after connection
-  };
-  
-  ws.onmessage = function(event) {
-    console.log('Message received from server:', event.data);
-    setMessages([...messages, JSON.parse(event.data)]);
-    // Process messages received from the server (update UI, etc.)
-  };
-  
-  ws.onclose = function(event) {
-    console.log('WebSocket connection closed!', event);
-    // Handle disconnection (reconnect logic, etc.)
-  };
- }
-
-  const handleJoin = () => {
-    ws && ws.send(JSON.stringify({type: 'join', message: 'Join Chat', roomId: chatRoomId, userId: userId}))
+    ws.onclose = function (event) {
+      console.log('WebSocket connection closed!', event);
+      // Handle disconnection (reconnect logic, etc.)
+    };
   }
 
-  const onSubmit = ( )=> {
+  const handleJoin = () => {
+    ws && ws.send(JSON.stringify({ type: 'join', message: 'Join Chat', roomId: chatRoomId, userId: userId }))
+  }
+
+  const onSubmit = () => {
     const newMessage = {
       type: 'message',
       message: inputValue,
@@ -67,15 +79,61 @@ useEffect(() => {
       userId: userId
     }
     ws.send(JSON.stringify(newMessage))
+    setInputValues('')
   }
 
   const handleLeave = () => {
-    
     ws.close()
   }
+
+  function startTyping(roomId) {
+    ws.send(JSON.stringify({ type: 'startTyping', roomId }));
+  }
+
+  function stopTyping(roomId) {
+    ws.send(JSON.stringify({ type: 'stopTyping', roomId }));
+  }
+
+  const handleKeyDown = (e) => {
+    if( e.keyCode === 13 ){
+      onSubmit();
+
+    }
+  }
+
+  const  renderMessage = () => {
+    const chatDetails = getChatInfo(chatRoomId);
+    return(
+      <div className='chatWrapper'>
+        {messages.map(({type, data}) => {
+          const {userName} = chatDetails.find(item => item.userId === data.user) || {}
+          const isCurrentUser = data.user === userId;
+          if(type === 'message'){
+            return (
+              <div className={isCurrentUser ? 'messageRight': 'messageLeft'}>
+                <div className="messageContent">
+                  <p>{data.message}</p>
+                  <span>{userName} at {data.timestamp}</span>
+                </div>
+              </div>
+            )
+          }else if(type === 'newUser' && !isCurrentUser){
+            
+            return(
+              <div className='messageCenter'>
+                <p>{userName} has Joined.</p>
+              </div>
+            )
+          }
+        })}
+      </div>
+    )
+  }
+
+ 
   return (
     <Layout>
-      <Sider trigger={null} collapsible collapsed={collapsed}  style={{ overflow: 'auto', height: '100vh' }}>
+      <Sider trigger={null} collapsible collapsed={collapsed} style={{ overflow: 'auto', height: '90vh', }}>
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
@@ -101,7 +159,7 @@ useEffect(() => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }}>
+        <Header style={{ paddingLeft: 0, background: colorBgContainer, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -109,26 +167,41 @@ useEffect(() => {
             style={{
               fontSize: '16px',
               width: 64,
-              height: 64,
+              // height: 64,
             }}
           />
+          <div>
+            Invite User <span>
+              {`${window.location.origin}/chat/${chatRoomId}`}
+            </span>
+          </div>
         </Header>
         <Content
           style={{
             margin: '24px 16px',
-            padding: 24,
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
+            position: 'relative',
+            maxHeight: '80vh'
           }}
         >
-          <div>
-            {JSON.stringify(messages)}
-            <button onClick={handleJoin}>Join Room</button>
-            <button onClick={handleLeave}>Leave Room</button>
-            <Input placeholder="Message" onChange={(e)=> setInputValues(e.target.value)}/>
-            <Button onClick={onSubmit}>Submit</Button>
-          </div>
+          <>
+            {renderMessage()}
+            {/* <button onClick={handleJoin}>Join Room</button>
+            <button onClick={handleLeave}>Leave Room</button> */}
+            <div className="messageForm">
+            <Input
+            value={inputValue}
+              placeholder="Message"
+              onChange={(e) => { setInputValues(e.target.value) }}
+            // onFocus={() => startTyping(chatRoomId)}
+            // onBlur={()=> stopTyping(chatRoomId)}
+            onKeyDown={handleKeyDown}
+            />
+            {/* <Button onClick={onSubmit} disabled={Boolean(!ws)}>Submit</Button> */}
+            </div>
+          </>
         </Content>
       </Layout>
     </Layout>
