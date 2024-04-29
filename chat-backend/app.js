@@ -10,7 +10,7 @@ const startWebSocketServer = require('./websocket-server'); // Assuming it's exp
 
 var app = express();
 
-startWebSocketServer({server: app});
+startWebSocketServer(80);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
