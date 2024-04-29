@@ -3,6 +3,7 @@
 # dependencies
 /node_modules
 /chat-front-end/node_modules
+/chat-front-end/*.env
 /chat-backend/node_modules
 /.pnp
 .pnp.js
@@ -11,7 +12,7 @@
 /coverage
 
 # production
-/build
+/**/build
 
 # misc
 .DS_Store
