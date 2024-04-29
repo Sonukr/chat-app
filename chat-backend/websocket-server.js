@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const { rooms, joinRoom, createRoom, leaveRoom, broadcastToRoom, getRoomUsers } = require('./room');
+const { rooms, joinRoom, createRoom, leaveRoom, startTyping,stopTyping, broadcastToRoom, getRoomUsers } = require('./room');
 
 function startWebSocketServer(port) {
   const wss = new WebSocket.Server({ port: port });
@@ -15,9 +15,23 @@ function startWebSocketServer(port) {
         const userId = data.userId; // Assuming userId is sent along with the join command
         joinRoom(roomId, ws, userId);
         console.log(`Client (user ${userId}) joined room: ${roomId}`);
-        ws.send(JSON.stringify({ type: 'joined', roomId, users: getRoomUsers(roomId) })); // Send confirmation and current users
-        const messageData = { type: 'newUser', message: `${userId} has joined.`, user: data.user }; // User data can be sent here
+        ws.send(JSON.stringify({ type: 'joined', data:{ roomId, users: getRoomUsers(roomId)} })); // Send confirmation and current users
+        const messageData = { type: 'newUser', message: `${userId} has joined.`, user: userId }; // User data can be sent here
         broadcastToRoom(roomId, messageData);
+      } else if (data.type === 'startTyping') {
+        const roomId = data.roomId;
+        if (rooms[roomId]) {
+          startTyping(roomId, ws);
+        } else {
+          console.warn(`Client tried to start typing in non-existent room: ${roomId}`);
+        }
+      } else if (data.type === 'stopTyping') {
+        const roomId = data.roomId;
+        if (rooms[roomId]) {
+          stopTyping(roomId, ws);
+        } else {
+          console.warn(`Client tried to stop typing in non-existent room: ${roomId}`);
+        }
       } else if (data.type === 'message') {
         const roomId = data.roomId;
         if (rooms[roomId]) {
