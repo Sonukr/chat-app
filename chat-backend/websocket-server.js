@@ -2,8 +2,8 @@ const WebSocket = require('ws');
 
 const { rooms, joinRoom, createRoom, leaveRoom, startTyping,stopTyping, broadcastToRoom, getRoomUsers } = require('./room');
 
-function startWebSocketServer(port) {
-  const wss = new WebSocket.Server({ port: port });
+function startWebSocketServer(server, port) {
+  const wss = new WebSocket.Server({ server });
   
   wss.on('connection', (ws) => {
     console.log('Client connected');

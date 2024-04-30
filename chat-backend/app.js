@@ -6,13 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-const startWebSocketServer = require('./websocket-server'); // Assuming it's exported
-
-const {isDevelopment} = utils;
-
 var app = express();
-
-startWebSocketServer(isDevelopment() ? 80 : 443);
 
 console.log(process.env.NODE_ENV)
 // view engine setup
