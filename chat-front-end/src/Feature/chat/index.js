@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import './style.css';
-
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -136,7 +134,7 @@ const Chat: React.FC = () => {
  
   return (
     <Layout>
-      <Sider trigger={null} collapsible collapsed={collapsed} style={{ overflow: 'auto', height: '90vh', }}>
+      <Sider trigger={null} collapsible collapsed={collapsed} style={{ overflow: 'auto', height: '90vh', display: 'none'}}>
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
@@ -182,7 +180,7 @@ const Chat: React.FC = () => {
         <Content
           style={{
             margin: '24px 16px',
-            minHeight: 280,
+            minHeight: '80vh',
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
             position: 'relative',

@@ -12,7 +12,10 @@ function App() {
     <div>
       <Navbar />
       <Routes>
-      
+      {/*
+       https://docs.render.com/deploy-create-react-app#using-client-side-routing 
+        Fix Routing on server | set server side routing to client side
+      */}
           {router
             && router.map((route) => (
               <Route
