@@ -200,7 +200,7 @@ const Chat: React.FC = () => {
             // onBlur={()=> stopTyping(chatRoomId)}
             onKeyDown={handleKeyDown}
             />
-            {/* <Button onClick={onSubmit} disabled={Boolean(!ws)}>Submit</Button> */}
+            <Button onClick={onSubmit} disabled={Boolean(!ws)}>Send</Button>
             </div>
           </>
         </Content>
