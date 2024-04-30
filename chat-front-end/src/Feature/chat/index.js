@@ -12,6 +12,7 @@ import {
 import { Button, Layout, Menu, theme, Input, } from 'antd';
 import { useParams } from 'react-router-dom';
 import { getChatInfo } from '../home/utils';
+import { isProduction, webSocketUrl } from '../../utils/config';
 
 const { Header, Sider, Content } = Layout;
 
@@ -24,7 +25,9 @@ const Chat: React.FC = () => {
   
   useEffect(() => {
     if (!ws) {
-      const newWs = new WebSocket(`ws://${window.location.hostname}`);
+      const protocol = window.location.protocol.includes('https') ? 'wss': 'ws';
+      const url = isProduction() ? webSocketUrl : `${window.location.hostname}:9699`;
+      const newWs = new WebSocket(`${protocol}://${url}`);
       // Handle connection events here (ws.onopen, ws.onmessage, ws.onclose)
       setWs(newWs);
     }
