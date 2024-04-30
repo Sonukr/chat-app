@@ -7,7 +7,7 @@ import {
   UserOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Menu, theme, Input, } from 'antd';
+import { Button, Layout, Menu, theme, Input, Tag, message, } from 'antd';
 import { useParams } from 'react-router-dom';
 import { getChatInfo } from '../home/utils';
 import { isProduction, webSocketUrl } from '../../utils/config';
@@ -20,6 +20,7 @@ const Chat: React.FC = () => {
   const [messages, setMessages] = useState([]);
   const [ws, setWs] = useState(null);
   const { id: chatRoomId, userId } = useParams();
+  const [messageApi, contextHolder] = message.useMessage();
   
   useEffect(() => {
     if (!ws) {
@@ -132,8 +133,17 @@ const Chat: React.FC = () => {
   }
 
  
+  const copyLink = (link) => {
+    navigator.clipboard.writeText(link);
+    messageApi.open({
+      type: 'success',
+      content: 'Invitation link copied to clipboard.',
+    });
+
+  }
   return (
     <Layout>
+      {contextHolder}
       <Sider trigger={null} collapsible collapsed={collapsed} style={{ overflow: 'auto', height: '90vh', display: 'none'}}>
         <div className="demo-logo-vertical" />
         <Menu
@@ -171,10 +181,8 @@ const Chat: React.FC = () => {
               // height: 64,
             }}
           />
-          <div>
-            Invite User <span>
-              {`${window.location.origin}/chat/${chatRoomId}`}
-            </span>
+          <div onClick={() => copyLink(`${window.location.origin}/chat/${chatRoomId}`)}>
+            <Tag color="#2db7f5">Copy nvitation Link </Tag>
           </div>
         </Header>
         <Content
