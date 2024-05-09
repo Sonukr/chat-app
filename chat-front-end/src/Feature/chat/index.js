@@ -11,19 +11,22 @@ import { Button, Layout, Menu, theme, Input, Tag, message, } from 'antd';
 import { useParams } from 'react-router-dom';
 import { getChatInfo } from '../home/utils';
 import { isProduction, webSocketUrl } from '../../utils/config';
+import { checkServerHealth } from '../../utils/utils';
+import Loader from '../../Components/Loader';
 
 const { Header, Sider, Content } = Layout;
 
-const Chat: React.FC = () => {
+const Chat = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [inputValue, setInputValues] = useState('');
   const [messages, setMessages] = useState([]);
   const [ws, setWs] = useState(null);
   const { id: chatRoomId, userId } = useParams();
   const [messageApi, contextHolder] = message.useMessage();
-  
+  const [isServerUp, setIsserverUp] = useState(false);
   useEffect(() => {
     if (!ws) {
+      pingServer();
       const protocol = window.location.protocol.includes('https') ? 'wss': 'ws';
       const url = isProduction() ? webSocketUrl : `${window.location.hostname}:9699`;
       const newWs = new WebSocket(`${protocol}://${url}`);
@@ -46,6 +49,7 @@ const Chat: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
   if (ws) {
     ws.onopen = function (event) {
       console.log('WebSocket connection opened!');
@@ -139,7 +143,26 @@ const Chat: React.FC = () => {
       type: 'success',
       content: 'Invitation link copied to clipboard.',
     });
+  }
 
+  const pingServer = async() => {
+    const serverResp = await checkServerHealth();
+    if(serverResp){
+      setIsserverUp(serverResp);
+    }
+  }
+
+  if(!isServerUp){
+    return(
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh'
+      }}>
+        <Loader title="Starting the free tier server."/>
+      </div>
+    )
   }
   return (
     <Layout>
@@ -188,7 +211,7 @@ const Chat: React.FC = () => {
         <Content
           style={{
             margin: '24px 16px',
-            minHeight: '80vh',
+            minHeight: '60vh',
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
             position: 'relative',

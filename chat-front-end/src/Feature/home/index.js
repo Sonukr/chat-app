@@ -5,8 +5,10 @@ import { firebaseAuth as auth } from '../../firebase/config';
 import { useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { setUserInfo } from './utils';
+import { checkServerHealth } from '../../utils/utils';
+import Loader from '../../Components/Loader';
 
-const Home: React.FC = () => {
+const Home = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -14,7 +16,10 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const {id: chatRoomId} = useParams();
   const [user, setUser] = useState('');
+
+  const [isServerUp, setIsserverUp] = useState(false);
   useEffect(() => {
+    pingServer();
     onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is signed in, see docs for a list of available properties
@@ -36,8 +41,29 @@ const Home: React.FC = () => {
     const userId = uuidv4();
     setUserInfo(chatId, userId, user);
     navigate(`/chat/${chatId}/${userId}`);
-    
   }
+
+  const pingServer = async() => {
+    const serverResp = await checkServerHealth();
+    if(serverResp){
+      setIsserverUp(serverResp);
+    }
+  }
+
+  if(!isServerUp){
+    return(
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh'
+      }}>
+        <Loader title="Starting the free tier server."/>
+      </div>
+    )
+  }
+
+
   return (
     <Layout style={{
       display: 'flex',
@@ -56,8 +82,6 @@ const Home: React.FC = () => {
           marginBottom: 32,
           borderRadius: borderRadiusLG,
           // height: '80vh'
-
-
         }}
       >
         <Input placeholder='You name' onChange={(e)=> setUser(e.target.value)}/>

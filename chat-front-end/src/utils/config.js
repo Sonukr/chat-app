@@ -15,3 +15,4 @@ export const isDevelopment = () => env === ENV_DEV || env === 'development';
 
 
 export const webSocketUrl = process.env.REACT_APP_WEBSOCKET_URL;
+export const apiBaseUrl = isProduction() ? process.env.REACT_APP_WEBSOCKET_URL : 'http://localhost:9699';
