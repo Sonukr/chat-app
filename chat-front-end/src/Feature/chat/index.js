@@ -8,8 +8,18 @@ import {
   VideoCameraOutlined,
 } from "@ant-design/icons";
 import { uniq, isEmpty } from "lodash";
-import { Button, Layout, Menu, theme, Input, Tag, message } from "antd";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import {
+  Button,
+  Layout,
+  Menu,
+  theme,
+  Input,
+  Tag,
+  message,
+  Dropdown,
+} from "antd";
+import { isMobile } from "react-device-detect";
+import { useNavigate, useParams } from "react-router-dom";
 import { getChatInfo, updateUserInfo } from "../home/utils";
 import { isProduction, webSocketUrl } from "../../utils/config";
 import { checkServerHealth } from "../../utils/utils";
@@ -191,6 +201,7 @@ const Chat = () => {
     };
     ws.send(JSON.stringify(newMessage));
     setInputValues("");
+    isMobile && stopTyping(chatRoomId);
   };
 
   const handleLeave = () => {
@@ -263,6 +274,30 @@ const Chat = () => {
     return uniq(users).join(", ");
   };
 
+  const getUsersList = () => {
+    const chatDetails =
+      baseChatDetails[chatRoomId] || getChatInfo(chatRoomId) || [];
+    debugger;
+    const users = chatDetails.map((item) => {
+      return {
+        key: item.userId,
+        label: item.userName,
+      };
+    });
+    console.log(users, chatDetails, "fffff");
+    const a = [
+      {
+        key: "1",
+        label: " 1st menu item",
+      },
+      {
+        key: "2",
+        label: " 2nd menu item",
+      },
+    ];
+    return users;
+  };
+
   if (!isServerUp) {
     return (
       <div
@@ -320,16 +355,25 @@ const Chat = () => {
             alignItems: "center",
           }}
         >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: "16px",
-              width: 64,
-              // height: 64,
-            }}
-          />
+          <div>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: "16px",
+                width: 64,
+                // height: 64,
+              }}
+            />
+            <Dropdown
+              menu={{ items: getUsersList() }} // Call the function to get items
+              placement="bottom"
+              arrow
+            >
+              <Button>Users</Button>
+            </Dropdown>
+          </div>
           <div
             onClick={() =>
               copyLink(`${window.location.origin}/chat/${chatRoomId}`)
@@ -340,8 +384,8 @@ const Chat = () => {
         </Header>
         <Content
           style={{
-            margin: "24px 16px",
-            minHeight: "60vh",
+            margin: "24px 16px 0",
+            minHeight: "80vh",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
             position: "relative",

@@ -7,11 +7,12 @@
     flex: 1 1;
     width: 100%;
     padding: 24px;
+    background: #eeeeee;
+    padding: 6px;
 }
 .messageForm > div {
     width: 95%;
-    background: #eeeeee;
-    padding: 6px;
+    margin-right: 10px;
 }
 
 .messageFormTyping {
@@ -24,8 +25,8 @@
 .chatWrapper {
     max-height: 90%;
     overflow: auto;
-    min-height: 70%;
-    margin-bottom: 10px;
+    min-height: 90%;
+    margin-bottom: 40px;
     display: flex;
     flex-direction: column;
     padding: 12px 24px;

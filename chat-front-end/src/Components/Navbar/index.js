@@ -1,10 +1,13 @@
 import { Typography } from "antd";
 
 import { Layout } from "antd";
+import { useNavigate } from "react-router-dom";
 const { Header } = Layout;
 const { Title } = Typography;
 
 export default function Navbar() {
+
+  const navigate = useNavigate('');
   return (
     <Header
       style={{
@@ -13,9 +16,9 @@ export default function Navbar() {
         justifyContent: "space-between",
       }}
     >
-      <div className="demo-logo">
+      <div className="demo-logo" onClick={() => navigate(`/`)}>
         <Title level={3} style={{ color: "#fff", margin: 0 }}>
-          Chat App
+          Live chat
         </Title>
       </div>
       {/* <NavLink to="/signup">
